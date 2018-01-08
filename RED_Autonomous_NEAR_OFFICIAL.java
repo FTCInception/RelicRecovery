@@ -21,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 //@com.qualcomm.robotcore.eventloop.  opmode.TeleOp(name="Nolan v3", group="TeleOp")
 @Autonomous(name="Blue_Position_NEAR", group="BLUE_NEAR")
 
-public class BLUE_Autonomous_NEAR_OFFICIAL extends LinearOpMode{
+public class RED_Autonomous_NEAR_OFFICIAL extends LinearOpMode{
 
 
     private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor;
