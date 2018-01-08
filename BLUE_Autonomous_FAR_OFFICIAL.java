@@ -1,12 +1,8 @@
 package org.firstinspires.ftc.teamcode.nolan;
 /**
- * Created by NPlaxton on 12/22/17.
+ * Created by nplaxton on 12/22/17.
  */
 
-/*
-ADB guide can be found at:
-https://ftcprogramming.wordpress.com/2015/11/30/building-ftc_app-wirelessly/
-*/
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -14,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
@@ -24,14 +21,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 //@com.qualcomm.robotcore.eventloop.  opmode.TeleOp(name="Nolan v3", group="TeleOp")
 @Autonomous(name="Blue_Position_FAR", group="BLUE_FAR")
 
-public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
+public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
 
 
     private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor;
-    private static Servo l_gripper, r_gripper;
+    private static Servo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper, gripperFlipper, relicGripper, relicTooth;
     private static DcMotor lifter_motor;
     private static Servo jewel_hand, jewel_elbow;
-
+    private final int TICS_PER_REV = 1120;
+    private final double INCHES_PER_TIC = 0.01121997376;
     private static boolean open_gripper;
 
 
@@ -44,16 +42,22 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         r_f_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         r_b_motor = hardwareMap.dcMotor.get("right_back");
         r_b_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        //NOTE In the example the DcMotorController.RunMode was used, but this wasn't working so I changed it to DcMotor.RunMode
 
-   /* LIFTER: */
-        lifter_motor = hardwareMap.dcMotor.get("lift");
+
+
+   /* Arm: */
+        lifter_motor = hardwareMap.dcMotor.get("intake_arm");
         lifter_motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-   /* GRIPPER: */
-        l_gripper = hardwareMap.servo.get("left_arm");
-        r_gripper = hardwareMap.servo.get("right_arm");
+   /* GRIPPERS: */
+        l_b_gripper = hardwareMap.servo.get("left_bottom_arm");
+        r_b_gripper = hardwareMap.servo.get("right_bottom_arm");
+        l_t_gripper = hardwareMap.servo.get("left_top_arm");
+        r_t_gripper = hardwareMap.servo.get("right_top_arm");
+        gripperFlipper = hardwareMap.servo.get("gripper_flipper");
 
-   /*Linear actuator servo and arm*/
+   /*Jewel servo and arm*/
         jewel_elbow = hardwareMap.servo.get("la_elbow");
         jewel_hand = hardwareMap.servo.get("la_arm");
 
@@ -62,25 +66,138 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         //not sure about these positions
         jewel_elbow.setPosition(0.4);
         jewel_hand.setPosition(0.5);
-        l_gripper.setPosition(0.4);
-        r_gripper.setPosition(0.1);
+        l_b_gripper.setPosition(0.4);
+        r_b_gripper.setPosition(0.1);
     }
 
-    //Currently the movement method relies on time, eventually we will want to switch to using motor encoders
-    public void movement(double rf, double rb, double lf, double lb, ElapsedTime eTime, double time) {
-        eTime.reset();
-        while (eTime.time() < time && opModeIsActive()) {
-            r_f_motor.setPower(rf);
-            r_b_motor.setPower(rb);
-            l_f_motor.setPower(lf);
-            l_b_motor.setPower(lb);
-        }
-
+    public void flipGrip(boolean std)
+    {
+        if (std)
+            gripperFlipper.setPosition(.5);
+        else
+            gripperFlipper.setPosition(0);
+    }
+    public void releaseBlock(){
+        l_b_gripper.setPosition(0.6);
+        r_b_gripper.setPosition(0.0);
+    }
+    //This method converts the distance in inches to distance in number of tics
+    public int getDistance(double inches)
+    {
+        return (int)(Math.floor(inches/INCHES_PER_TIC));
+    }
+    public void stopDriving()
+    {
         r_f_motor.setPower(0);
         r_b_motor.setPower(0);
         l_f_motor.setPower(0);
         l_b_motor.setPower(0);
     }
+    public void raiseArm(int distance, double power)
+    {
+        //distance for full flip = 560 (1120 / 2)
+        lifter_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lifter_motor.setTargetPosition(distance);
+        lifter_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lifter_motor.setPower(power);
+        while (lifter_motor.isBusy()){
+
+        }
+        lifter_motor.setPower(0);
+        lifter_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void drive(double power) {
+
+        r_f_motor.setPower(power);
+        r_b_motor.setPower(power);
+        l_f_motor.setPower(power);
+        l_b_motor.setPower(power);
+
+    }
+    //Movement handles all driving for the robot during autonomous EXCEPT turning
+    public void movement(int distance, double power) {
+
+            r_f_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            r_b_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            l_f_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            l_b_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            r_f_motor.setTargetPosition(distance);
+            r_b_motor.setTargetPosition(distance);
+            l_f_motor.setTargetPosition(distance);
+            l_b_motor.setTargetPosition(distance);
+
+            r_f_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            r_b_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            l_f_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            l_b_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            drive(power);
+
+            while (r_f_motor.isBusy() && r_b_motor.isBusy() && l_f_motor.isBusy() && l_b_motor.isBusy()){
+                //Jokes on you kid there's nothing here get good
+            }
+
+            stopDriving();
+            r_f_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            r_b_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            l_f_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            l_b_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+    }
+    //This method handles 90 degree turns during autonomous
+    public void turn(boolean cw)
+    {
+        ElapsedTime eTime = new ElapsedTime();
+        if (cw){
+            while (eTime.time()<1.5){
+                r_f_motor.setPower(-.2);
+                r_b_motor.setPower(-.2);
+                l_f_motor.setPower(.2);
+                l_b_motor.setPower(.2);
+            }
+        }
+        else{
+            while (eTime.time()<1.5){
+                r_f_motor.setPower(.2);
+                r_b_motor.setPower(.2);
+                l_f_motor.setPower(-.2);
+                l_b_motor.setPower(-.2);
+            }
+        }
+        r_f_motor.setPower(0);
+        r_b_motor.setPower(0);
+        l_f_motor.setPower(0);
+        l_b_motor.setPower(0);
+        eTime.reset();
+    }
+    public void strafe(boolean right, double time)
+    {
+        ElapsedTime eTime = new ElapsedTime();
+        if (right){
+            while (eTime.time()<time){
+                r_f_motor.setPower(-.2);
+                r_b_motor.setPower(.2);
+                l_f_motor.setPower(.2);
+                l_b_motor.setPower(-.2);
+            }
+        }
+        else{
+            while (eTime.time()<time){
+                r_f_motor.setPower(.2);
+                r_b_motor.setPower(-.2);
+                l_f_motor.setPower(-.2);
+                l_b_motor.setPower(.2);
+            }
+        }
+        r_f_motor.setPower(0);
+        r_b_motor.setPower(0);
+        l_f_motor.setPower(0);
+        l_b_motor.setPower(0);
+        eTime.reset();
+    }
+    /*
+    This was just a random guess method but it uses etime which I want to get rid of, I'll replace this later but for debugging I dont want to make things confusing
     public void prayer(ElapsedTime eTime)
     {
         //Guesses the cryptobox rather than trying to read key, effectively what we did at December scrimmage
@@ -102,17 +219,48 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         //back up to not be touching the glyph
         movement(.15, .15, .15, .15, eTime, 1);
     }
-    public void right(ElapsedTime eTime)
+    */
+
+    //This method handles getting off the balancing stone and getting in the right position (touching the balancing stone)
+    public void getOff()
     {
+        movement(getDistance(28.0),.25);
+        turn(true);
+        //Strafe into the balancing stone, establishing location
+        strafe(false, 4.0);
+        movement(getDistance(30.0),.25);
+
+        //we end this method 9 inches from the wall,lined up with the balancing stone, and turned around
+
 
     }
-    public void left(ElapsedTime eTime)
+    //These methods handle moving to each cryptobox column during autonomous, as determined by the result of the vumark key
+    public void right()
     {
+        strafe(true,.4);
+        movement(getDistance(5.0),-.25);
+        raiseArm(460, .2);
+        releaseBlock();
+        raiseArm(560,-.2);
+        strafe(true,.5);
 
     }
-    public void center(ElapsedTime eTime)
+    public void left()
     {
-
+        strafe(true,4);
+        movement(getDistance(5.0),-.25);
+        raiseArm(460, .2);
+        releaseBlock();
+        raiseArm(560,-.2);
+        strafe(false,.5);
+    }
+    public void center()
+    {
+        strafe(true,2);
+        movement(getDistance(5.0),-.25);
+        raiseArm(460, .2);
+        releaseBlock();
+        raiseArm(560,-.2);
     }
 
     OpenGLMatrix lastLocation = null;
@@ -130,14 +278,16 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         VuforiaTrackable relicTemplate = relicTrackables.get(0);
         relicTemplate.setName("relicVuMarkTemplate");
 
-        ElapsedTime eTime = new ElapsedTime();
+
         ColorSensor sensorColor;
         sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
         waitForStart();
         relicTrackables.activate();
         //start by closing the gripper on the block
-        l_gripper.setPosition(0);
-        r_gripper.setPosition(0.35);
+        l_b_gripper.setPosition(0); //THESE NEED FIXING
+        r_b_gripper.setPosition(0.35); //THESE VALUES NEED FIXING
+        raiseArm(100,.2);
+        flipGrip(true);
         //rotate the Linear Actuator to be parallel to the ground
         jewel_elbow.setPosition(1.0);
         RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
@@ -183,22 +333,25 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         {
             if (vuMark == RelicRecoveryVuMark.CENTER)
             {
-                center(eTime);
+                getOff();
+                center();
             }
             if (vuMark == RelicRecoveryVuMark.RIGHT)
             {
-                right(eTime);
+                getOff();
+                right();
             }
             if (vuMark == RelicRecoveryVuMark.LEFT)
             {
-                left(eTime);
+                getOff();
+                left();
             }
             telemetry.addData("VuMark", "%s visible", vuMark);
 
         }
         else {
             telemetry.addData("VuMark", "not visible");
-            prayer(eTime);
+            //prayer(eTime);
         }
         telemetry.update();
 
