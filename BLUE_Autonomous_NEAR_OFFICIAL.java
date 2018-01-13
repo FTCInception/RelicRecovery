@@ -57,6 +57,9 @@ public class BLUE_Autonomous_NEAR_OFFICIAL extends LinearOpMode{
         r_t_gripper = hardwareMap.servo.get("right_top_arm");
         gripperFlipper = hardwareMap.servo.get("gripper_flipper");
 
+        relicGripper = hardwareMap.servo.get("relic_arm");
+        relicTooth = hardwareMap.servo.get("relic_tooth");
+
    /*Jewel servo and arm*/
         jewel_elbow = hardwareMap.servo.get("la_elbow");
         jewel_hand = hardwareMap.servo.get("la_arm");

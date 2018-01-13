@@ -63,6 +63,9 @@ public class RED_Autonomous_NEAR_OFFICIAL extends LinearOpMode{
 
         open_gripper = true;
 
+        relicGripper = hardwareMap.servo.get("relic_arm");
+        relicTooth = hardwareMap.servo.get("relic_tooth");
+
         //not sure about these positions
         jewel_elbow.setPosition(0.4);
         jewel_hand.setPosition(0.5);
