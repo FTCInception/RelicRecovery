@@ -1,19 +1,26 @@
 package org.firstinspires.ftc.teamcode.nolan;
+
 /**
- * Created by nplaxton on 12/22/17.
+ * Created by nplaxton on 12/22/17
+ * TODO trace every output and adjust jewel function, transfer stuff that isnt in other modes that is in here into the other modes. Jewel shifts to the left slightly, then down to initialize
+ * Test turn
+ * Test Strafe
+ * Test Jewel Arm Stuff
+ * Test Flipper stuff
+ * Test everything
  */
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
@@ -23,13 +30,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
 
-
-    private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor;
-    private static Servo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper, gripperFlipper, relicGripper, relicTooth;
+    public static final String TAG = "Vuforia VuMark Sample";
+    private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor, relic_motor;
+    private static Servo gripperFlipper, relicGripper, relicTooth;
+    private static CRServo  l_t_gripper, r_t_gripper, l_b_gripper, r_b_gripper;
     private static DcMotor lifter_motor;
     private static Servo jewel_hand, jewel_elbow;
     private final int TICS_PER_REV = 1120;
     private final double INCHES_PER_TIC = 0.01121997376;
+    private final double wheelRatio = (25/16);
     private static boolean open_gripper;
 
 
@@ -43,7 +52,8 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
         r_b_motor = hardwareMap.dcMotor.get("right_back");
         r_b_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         //NOTE In the example the DcMotorController.RunMode was used, but this wasn't working so I changed it to DcMotor.RunMode
-
+        relic_motor = hardwareMap.dcMotor.get("relic_motor");
+        relic_motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
    /* Arm: */
@@ -51,10 +61,10 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
         lifter_motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
    /* GRIPPERS: */
-        l_b_gripper = hardwareMap.servo.get("left_bottom_arm");
-        r_b_gripper = hardwareMap.servo.get("right_bottom_arm");
-        l_t_gripper = hardwareMap.servo.get("left_top_arm");
-        r_t_gripper = hardwareMap.servo.get("right_top_arm");
+        l_b_gripper = hardwareMap.crservo.get("left_bottom_arm");
+        r_b_gripper = hardwareMap.crservo.get("right_bottom_arm");
+        l_t_gripper = hardwareMap.crservo.get("left_top_arm");
+        r_t_gripper = hardwareMap.crservo.get("right_top_arm");
         gripperFlipper = hardwareMap.servo.get("gripper_flipper");
 
         relicGripper = hardwareMap.servo.get("relic_arm");
@@ -69,8 +79,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
         //not sure about these positions
         jewel_elbow.setPosition(0.4);
         jewel_hand.setPosition(0.5);
-        l_b_gripper.setPosition(0.4);
-        r_b_gripper.setPosition(0.1);
+
     }
 
     public void flipGrip(boolean std)
@@ -80,10 +89,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
         else
             gripperFlipper.setPosition(0);
     }
-    public void releaseBlock(){
-        l_b_gripper.setPosition(0.6);
-        r_b_gripper.setPosition(0.0);
-    }
+
     //This method converts the distance in inches to distance in number of tics
     public int getDistance(double inches)
     {
@@ -100,7 +106,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
     {
         //distance for full flip = 560 (1120 / 2)
         lifter_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lifter_motor.setTargetPosition(distance);
+        lifter_motor.setTargetPosition(distance*3);
         lifter_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         lifter_motor.setPower(power);
         while (lifter_motor.isBusy()){
@@ -125,10 +131,10 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
             l_f_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             l_b_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-            r_f_motor.setTargetPosition(distance);
-            r_b_motor.setTargetPosition(distance);
-            l_f_motor.setTargetPosition(distance);
-            l_b_motor.setTargetPosition(distance);
+            r_f_motor.setTargetPosition((int)(distance/wheelRatio));
+            r_b_motor.setTargetPosition((int)(distance/wheelRatio));
+            l_f_motor.setTargetPosition((int)(distance/wheelRatio));
+            l_b_motor.setTargetPosition((int)(distance/wheelRatio));
 
             r_f_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             r_b_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -137,7 +143,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
 
             drive(power);
 
-            while (r_f_motor.isBusy() && r_b_motor.isBusy() && l_f_motor.isBusy() && l_b_motor.isBusy()){
+            while (r_f_motor.isBusy() && r_b_motor.isBusy() && l_f_motor.isBusy() && l_b_motor.isBusy() && opModeIsActive()){
                 //Jokes on you kid there's nothing here get good
             }
 
@@ -149,11 +155,11 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
 
     }
     //This method handles 90 degree turns during autonomous
-    public void turn(boolean cw)
+    public void turn(boolean ccw)
     {
         ElapsedTime eTime = new ElapsedTime();
-        if (cw){
-            while (eTime.time()<1.5){
+        if (ccw){
+            while (eTime.time()<6 && opModeIsActive()){
                 r_f_motor.setPower(-.2);
                 r_b_motor.setPower(-.2);
                 l_f_motor.setPower(.2);
@@ -161,7 +167,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
             }
         }
         else{
-            while (eTime.time()<1.5){
+            while (eTime.time()<6 && opModeIsActive()){
                 r_f_motor.setPower(.2);
                 r_b_motor.setPower(.2);
                 l_f_motor.setPower(-.2);
@@ -178,7 +184,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
     {
         ElapsedTime eTime = new ElapsedTime();
         if (right){
-            while (eTime.time()<time){
+            while (eTime.time()<time && opModeIsActive()){
                 r_f_motor.setPower(-.2);
                 r_b_motor.setPower(.2);
                 l_f_motor.setPower(.2);
@@ -186,7 +192,7 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
             }
         }
         else{
-            while (eTime.time()<time){
+            while (eTime.time()<time && opModeIsActive()){
                 r_f_motor.setPower(.2);
                 r_b_motor.setPower(-.2);
                 l_f_motor.setPower(-.2);
@@ -242,9 +248,11 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
     {
         strafe(true,.4);
         movement(getDistance(5.0),-.25);
-        raiseArm(460, .2);
-        releaseBlock();
-        raiseArm(560,-.2);
+        l_b_gripper.setPower(-.2);
+        r_b_gripper.setPower(-.2);
+        sleep(2000);
+        l_b_gripper.setPower(0);
+        r_b_gripper.setPower(0);
         strafe(true,.5);
 
     }
@@ -252,18 +260,22 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
     {
         strafe(true,4);
         movement(getDistance(5.0),-.25);
-        raiseArm(460, .2);
-        releaseBlock();
-        raiseArm(560,-.2);
+        l_b_gripper.setPower(-.2);
+        r_b_gripper.setPower(-.2);
+        sleep(2000);
+        l_b_gripper.setPower(0);
+        r_b_gripper.setPower(0);
         strafe(false,.5);
     }
     public void center()
     {
         strafe(true,2);
         movement(getDistance(5.0),-.25);
-        raiseArm(460, .2);
-        releaseBlock();
-        raiseArm(560,-.2);
+        l_b_gripper.setPower(-.2);
+        r_b_gripper.setPower(-.2);
+        sleep(2000);
+        l_b_gripper.setPower(0);
+        r_b_gripper.setPower(0);
     }
 
     OpenGLMatrix lastLocation = null;
@@ -287,33 +299,34 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
         waitForStart();
         relicTrackables.activate();
         //start by closing the gripper on the block
-        l_b_gripper.setPosition(0); //THESE NEED FIXING
-        r_b_gripper.setPosition(0.35); //THESE VALUES NEED FIXING
-        raiseArm(100,.2);
-        flipGrip(true);
+
+
+
         //rotate the Linear Actuator to be parallel to the ground
+        jewel_hand.setPosition(.55);
         jewel_elbow.setPosition(1.0);
+
         RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
         sleep(3000);
 
 
 
 
-        if (sensorColor.red() > sensorColor.blue()) {
+        if (sensorColor.red() < sensorColor.blue()) {
             //the color of the ball facing the sensor is red
             //we need to turn our arm to hit it off
             sleep(500);
-            jewel_hand.setPosition(0);
+            jewel_hand.setPosition(.4);
             sleep(100);
             jewel_hand.setPosition(.5);
             sleep(100);
-            jewel_hand.setPosition(0);
+            jewel_hand.setPosition(.4);
             sleep(100);
             jewel_hand.setPosition(.5);
             telemetry.addData("Color found is", "red");
 
 
-        } else if (sensorColor.blue() > sensorColor.red()) {
+        } else if (sensorColor.blue() < sensorColor.red()) {
             //the color of the ball facing the sensor is blue
             //we need to turn our arm to hit it off
             sleep(500);
@@ -332,27 +345,38 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
             telemetry.addData("Color found is", "none lol git gud scrub");
             sleep(2000);
         }
-        if (vuMark != RelicRecoveryVuMark.UNKNOWN)
-        {
+        jewel_elbow.setPosition(.4);
+        jewel_hand.setPosition(.5);
+        boolean found = false;
+        telemetry.addData("VuMark", "%s visible", vuMark);
+            sleep(5000);
             if (vuMark == RelicRecoveryVuMark.CENTER)
             {
+                telemetry.addData("VuMark", "%s visible", vuMark);
                 getOff();
                 center();
+                found = true;
             }
             if (vuMark == RelicRecoveryVuMark.RIGHT)
             {
+                telemetry.addData("VuMark", "%s visible", vuMark);
                 getOff();
                 right();
+                found = true;
             }
             if (vuMark == RelicRecoveryVuMark.LEFT)
             {
+                telemetry.addData("VuMark", "%s visible", vuMark);
                 getOff();
                 left();
+                found = true;
             }
-            telemetry.addData("VuMark", "%s visible", vuMark);
+        //movement(getDistance(15),.15);
+        //turn(true);
 
-        }
-        else {
+
+
+        if(found == false) {
             telemetry.addData("VuMark", "not visible");
             //prayer(eTime);
         }
@@ -361,5 +385,9 @@ public class BLUE_Autonomous_FAR_OFFICIAL extends LinearOpMode{
 
 
 
+    }
+    String format(OpenGLMatrix transformationMatrix)
+    {
+        return (transformationMatrix != null) ? transformationMatrix.formatAsTransform() : "null";
     }
 }
