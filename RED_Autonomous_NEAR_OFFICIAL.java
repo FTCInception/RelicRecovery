@@ -19,7 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 //@com.qualcomm.robotcore.eventloop.  opmode.TeleOp(name="Nolan v3", group="TeleOp")
-@Autonomous(name="Blue_Position_NEAR", group="BLUE_NEAR")
+@Autonomous(name="Red_Position_NEAR", group="RED_NEAR")
 
 public class RED_Autonomous_NEAR_OFFICIAL extends LinearOpMode{
 

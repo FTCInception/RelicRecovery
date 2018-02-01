@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.view.View;
 import android.graphics.Color;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -29,6 +30,7 @@ If you use our code and see us at competition, come say hello!
 */
 
 //@com.qualcomm.robotcore.eventloop.  opmode.TeleOp(name="Nolan v3", group="TeleOp")
+@Disabled
 @Autonomous(name="Blue_Position_FAR", group="Autonomous")
 
 public class AutonomousV2 extends LinearOpMode {

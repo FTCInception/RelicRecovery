@@ -25,7 +25,7 @@ public class RED_Autonomous_FAR_OFFICIAL extends LinearOpMode {
 
 
     private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor;
-    private static Servo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper, gripperFlipper, relicGripper, relicTooth;
+    private static Servo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper, gripperFlipper, relicGripper, relicTooth, relicArm;
     private static DcMotor lifter_motor;
     private static Servo jewel_hand, jewel_elbow;
     private final int TICS_PER_REV = 1120;
@@ -289,11 +289,11 @@ public class RED_Autonomous_FAR_OFFICIAL extends LinearOpMode {
         waitForStart();
         relicTrackables.activate();
         //start by closing the gripper on the block
-        l_b_gripper.setPosition(0); //THESE NEED FIXING
-        r_b_gripper.setPosition(0.35); //THESE VALUES NEED FIXING
+
         raiseArm(100, .2);
         flipGrip(true);
         //rotate the Linear Actuator to be parallel to the ground
+        jewel_hand.setPosition(.65);
         jewel_elbow.setPosition(1.0);
         RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
         sleep(3000);
