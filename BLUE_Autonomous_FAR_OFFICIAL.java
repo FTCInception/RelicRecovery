@@ -2,12 +2,6 @@ package org.firstinspires.ftc.teamcode.nolan;
 
 /**
  * Created by nplaxton on 12/22/17
- * TODO trace every output and adjust jewel function, transfer stuff that isnt in other modes that is in here into the other modes. Jewel shifts to the left slightly, then down to initialize
- * Test turn
- * Test Strafe
- * Test Jewel Arm Stuff
- * Test Flipper stuff
- * Test everything
  */
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
