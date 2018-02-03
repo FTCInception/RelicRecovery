@@ -30,7 +30,7 @@ public class Nolan_V3_TeleOp extends OpMode {
     private static final double SCALEDPOWER = 1; //Emphasis on current controller reading (vs current motor power) on the drive train
 
     private static DcMotor l_f_motor, l_b_motor, r_f_motor, r_b_motor;
-    private static CRServo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper;
+    private static Servo l_b_gripper, r_b_gripper, l_t_gripper, r_t_gripper;
      private static Servo gripperFlipper, relicGripper, relicTooth;
     private static DcMotor lifter_motor, relic_motor;
     private static Servo jewel_hand, jewel_elbow;
@@ -60,10 +60,10 @@ public class Nolan_V3_TeleOp extends OpMode {
         lifter_motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
    /* GRIPPERS: */
-        l_b_gripper = hardwareMap.crservo.get("left_bottom_arm");
-        r_b_gripper = hardwareMap.crservo.get("right_bottom_arm");
-        l_t_gripper = hardwareMap.crservo.get("left_top_arm");
-        r_t_gripper = hardwareMap.crservo.get("right_top_arm");
+        l_b_gripper = hardwareMap.servo.get("left_bottom_arm");
+        r_b_gripper = hardwareMap.servo.get("right_bottom_arm");
+        l_t_gripper = hardwareMap.servo.get("left_top_arm");
+        r_t_gripper = hardwareMap.servo.get("right_top_arm");
         gripperFlipper = hardwareMap.servo.get("gripper_flipper");
 
    /*Jewel servo and arm*/
@@ -114,7 +114,7 @@ public class Nolan_V3_TeleOp extends OpMode {
     // y - forwards
     // x - side
     // c - rotation
-    public static void arcadeMecanum(double y, double x, double c, DcMotor leftFront, DcMotor rightFront, DcMotor leftBack, DcMotor rightBack, double inputLift, DcMotor lifter_motor, CRServo l_b_gripper, CRServo r_b_gripper, CRServo l_t_gripper, CRServo r_t_gripper, double power_left, double power_right, double relic_arm_input, boolean relicarm, DcMotor relic_motor, boolean toothRelease, boolean relicWristUp, boolean relicWristDown, boolean toothBite, boolean gripperflip, Servo gripperFlipper, boolean outtake, Servo jewel_elbow, Servo jewel_hand, boolean reverseRelicarm, boolean flipgripreverse) {
+    public static void arcadeMecanum(double y, double x, double c, DcMotor leftFront, DcMotor rightFront, DcMotor leftBack, DcMotor rightBack, double inputLift, DcMotor lifter_motor, Servo l_b_gripper, Servo r_b_gripper, Servo l_t_gripper, Servo r_t_gripper, double power_left, double power_right, double relic_arm_input, boolean relicarm, DcMotor relic_motor, boolean toothRelease, boolean relicWristUp, boolean relicWristDown, boolean toothBite, boolean gripperflip, Servo gripperFlipper, boolean outtake, Servo jewel_elbow, Servo jewel_hand, boolean reverseRelicarm, boolean flipgripreverse) {
         double leftFrontVal = y + x + c;
         double rightFrontVal = y - x - c;
         double leftBackVal = y - x + c;
@@ -140,17 +140,20 @@ public class Nolan_V3_TeleOp extends OpMode {
 
         lifter_motor.setPower(inputLift);
 
-        l_b_gripper.setPower(power_left);
-        l_t_gripper.setPower(power_left);
-        r_b_gripper.setPower(power_right);
-        r_t_gripper.setPower(power_right);
-
-        if(outtake){
-            l_b_gripper.setPower(-power_left);
-            l_t_gripper.setPower(-power_left);
-            r_b_gripper.setPower(-power_right);
-            r_t_gripper.setPower(-power_right);
+        if (power_right > .15 || power_left > .15) {
+            l_b_gripper.setPosition(.7 +  power_left);
+            l_t_gripper.setPosition(.3 + power_left);
+            r_b_gripper.setPosition(.7 + power_right);
+            r_t_gripper.setPosition(.3 + power_right);
         }
+
+        else {
+            l_b_gripper.setPosition(.7);
+            l_t_gripper.setPosition(.3);
+            r_b_gripper.setPosition(.7);
+            r_t_gripper.setPosition(.3);
+        }
+        
 
         if (toothBite){
             relicTooth.setPosition(0);
