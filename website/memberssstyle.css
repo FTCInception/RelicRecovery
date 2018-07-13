@@ -1,0 +1,61 @@
+*
+{
+    margin: 0;
+    padding: 0;
+    
+}
+body
+{
+    font-family: monospace;
+    color: #ffffff;
+    background-image:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url(inceptionpic.jpg);
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+}
+
+.row
+{
+    max-width: 1200px;
+    margin: auto;
+    color: white;
+}
+
+.main-nav
+{
+    float: right;
+    list-style: none;
+    margin-top: 30px;
+}
+.main-nav li
+{
+    display: inline-block;
+}
+
+.main-nav li.active a
+{
+    border: 1px solid white;
+    
+}
+
+.main-nav li a:hover
+{
+    border: 1px solid white;
+}
+
+
+.main-nav li a
+{
+    color: white;
+    text-decoration: none;
+    padding: 5px 20px;
+    font-family: "Roboto", sans-serif;
+    font-size: 15px;
+}
+header
+{
+    
+    color: white;
+    text-decoration: none;
+    
+}
